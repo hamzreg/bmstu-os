@@ -1,33 +1,57 @@
       sub_1.lst						 Sourcer Listing v3.07    14-Sep-21   5:08 pm   Page 1
 
+; Сохранение содержимого регистров DS, AX.
 020A:07B9  1E					push	ds
 020A:07BA  50					push	ax
+
+; Загрузка в регистр AX 40h.
 020A:07BB  B8 0040				mov	ax,40h
+; Загрузка в регистр DX содержимого регистра AX.
 020A:07BE  8E D8				mov	ds,ax
+
+; Сохранение младшего байта регистра FLAGS в AH.
 020A:07C0  9F					lahf				; Load ah from flags
+
+; !!! Выставление флага ZF.
 020A:07C1  F7 06 0314 2400			test	word ptr ds:[314h],2400h	; (0040:0314=3200h)
+; Переход на метку loc_2, если не ноль.
 020A:07C7  75 0C				jnz	loc_2			; Jump if not zero
+
+; !!! Логическое И и блокировка для этой команды шины данных.
 020A:07C9  F0> 81 26 0314 FDFF	           lock	and	word ptr ds:[314h],0FDFFh	; (0040:0314=3200h)
+
 020A:07D0			loc_1:						;  xref 020A:07D6
+; Загрузка содержимого AH в младший байт регистра FLAGS. 
 020A:07D0  9E					sahf				; Store ah into flags
+
+; Загрузка в регистр AX.
 020A:07D1  58					pop	ax
+; Загрузка в регистр DS.
 020A:07D2  1F					pop	ds
+
+; Переход на метку loc_ret_3.
 020A:07D3  EB 03				jmp	short loc_ret_3		; (07D8)
+
+
 020A:07D5			loc_2:						;  xref 020A:07C7
+; IF = 0. Запрет прерываний от внешних устройств.
 020A:07D5  FA					cli				; Disable interrupts
+; Переход на метку loc_1.
 020A:07D6  EB F8				jmp	short loc_1		; (07D0)
-  
+
+
 020A:07D8			loc_ret_3:					;  xref 020A:07D3
+; Возврат из подпрограммы
 020A:07D8  C3					retn
 020A:07D9  1E					push	ds
 020A:07DA  50					push	ax
   
   
-				 ������������������ Interrupt Usage Synopsis ������������������
+				 ������������������ Interrupt Usage Synopsis ������������������
   
 				        No Interrupts used.
   
-				 ������������������ I/O	Port Usage Synopsis  ������������������
+				 ������������������ I/O	Port Usage Synopsis  ������������������
   
 				        No I/O ports used.
   
