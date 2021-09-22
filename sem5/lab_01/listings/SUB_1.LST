@@ -15,7 +15,7 @@
 020A:07C1  F7 06 0314 2400			test	word ptr ds:[314h],2400h	; (0040:0314=3200h)
 020A:07C7  75 0C				jnz	loc_2			; Jump if not zero
 
-; IF = 0.
+; IF = 0 в 0040:0314h.
 020A:07C9  F0> 81 26 0314 FDFF	           lock	and	word ptr ds:[314h],0FDFFh	; (0040:0314=3200h)
 
 020A:07D0			loc_1:						;  xref 020A:07D6

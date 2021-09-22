@@ -137,14 +137,14 @@
 \usepackage{graphicx}
 \newcommand{\img}[3] {
 	\begin{figure}[h!]
-		\center{\includegraphics[height=#1]{inc/img/#2}}
+		\center{\includegraphics[height=#1]{inc/#2}}
 		\caption{#3}
 		\label{img:#2}
 	\end{figure}
 }
 \newcommand{\boximg}[3] {
 	\begin{figure}[h]
-		\center{\fbox{\includegraphics[height=#1]{inc/img/#2}}}
+		\center{\fbox{\includegraphics[height=#1]{inc/#2}}}
 		\caption{#3}
 		\label{img:#2}
 	\end{figure}
