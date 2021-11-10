@@ -1,92 +1,103 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define OK    0
-#define ERROR 1
-#define PAUSE 3
+#define FORK_ERROR -1
+#define ERROR       1
+#define OK          0
+
+#define PAUSE       4
+
+#define TASK        "\n<<<<< Task 2 : Parent is waiting childs with wait() >>>>>\n\n"
+
 
 void check_status(int status)
 {
+    /*
+    *  Проверка статуса завершения
+    *  процесса-потомка.
+    */
+
     if (WIFEXITED(status))
     {
-        printf("Child exited with code %d\n", WEXITSTATUS(status));
+        printf("Child exited correctly with code %d.\n", WEXITSTATUS(status));
 
         return;
     }
     else if (WIFSIGNALED(status))
     {
-        printf("Child exited with code %d\n", WTERMSIG(status));
+        printf("Child exited with non-interceptable signal %d.\n", WTERMSIG(status));
 
         return;
     }
     else if (WIFSTOPPED(status))
     {
-        printf("Child exited with code %d\n", WSTOPSIG(status));
+        printf("Child stopped with signal %d.\n", WSTOPSIG(status));
 
         return;
     }
 }
 
+
 int main(void)
 {
-    pid_t child_pid1 = fork();
+    printf(TASK);
 
-    if (child_pid1 == -1)
+    pid_t child_pid1, child_pid2, child_pid;
+    int status;
+
+    if ((child_pid1 = fork()) == FORK_ERROR)
     {
-        perror("Can't fork child1.");
-        return ERROR;
+        perror("\nCan't fork child 1.\n");
+        exit(ERROR);
     }
     else if (child_pid1 == 0)
     {
-        printf("\nBEFORE\n");
-        printf("Child 1: PID = %d, PPID = %d, GPID = %d\n", getpid(), getppid(), getpgrp());
+        printf("\nBEFORE: \
+                \nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
         sleep(PAUSE);
 
-        printf("\nAFTER\n");
-        printf("Child 1: PID = %d, PPID = %d, GPID = %d\n", getpid(), getppid(), getpgrp());
+        printf("\nAFTER: \
+                \nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        return OK;
+        exit(OK);
     }
     else
     {
-        printf("\nParent: child 1 PID = %d, PID = %d, GPID = %d\n", child_pid1, getpid(), getpgrp());
+        child_pid = wait(&status);
+        printf("\nChild 1 has fihished: PID = %d, status = %d.\n", child_pid, status);
 
-        int status;
-        pid_t child_pid = wait(&status);
-        printf("\nChild 1 has fihished: child PID = %d, status = %d\n", child_pid, status);
-        printf("Parent: PID = %d\n", getpid());
+        printf("\nParent: PID = %d, GPID = %d, child 1 PID = %d.\n", getpid(), getpgrp(), child_pid1);
         check_status(status);
     }
 
-    pid_t child_pid2 = fork();
 
-    if (child_pid2 == -1)
+    if ((child_pid2 = fork()) == FORK_ERROR)
     {
-        perror("Can't fork child2.");
-        return ERROR;
+        perror("\nCan't fork child 2.\n");
+        exit(ERROR);
     }
     else if (child_pid2 == 0)
     {
-        printf("\nBEFORE\n");
-        printf("Child 2: PID = %d, PPID = %d, GPID = %d\n", getpid(), getppid(), getpgrp());
+        printf("\n\n\nBEFORE: \
+                \nChild 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
         sleep(PAUSE);
 
-        printf("\nAFTER\n");
-        printf("Child 2: PID = %d, PPID = %d, GPID = %d\n", getpid(), getppid(), getpgrp());
-        return OK;
+        printf("\nAFTER: \
+                \nChild 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
+
+        exit(OK);
     }
     else
     {
-        printf("\nParent: child 2 PID = %d, PID = %d, GPID = %d\n", child_pid2, getpid(), getpgrp());
+        child_pid = wait(&status);
+        printf("\nChild 1 has fihished: PID = %d, status = %d.\n", child_pid, status);
 
-        int status;
-        pid_t child_pid = wait(&status);
-        printf("\nChild 2 has fihished: child PID = %d, status = %d\n", child_pid, status);
-        printf("Parent: PID = %d\n", getpid());
+        printf("\nParent: PID = %d, GPID = %d, child 1 PID = %d.\n", getpid(), getpgrp(), child_pid1);
         check_status(status);
     }
 
