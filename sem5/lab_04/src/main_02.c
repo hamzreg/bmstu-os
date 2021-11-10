@@ -95,9 +95,9 @@ int main(void)
     else
     {
         child_pid = wait(&status);
-        printf("\nChild 1 has fihished: PID = %d, status = %d.\n", child_pid, status);
+        printf("\nChild 2 has fihished: PID = %d, status = %d.\n", child_pid, status);
 
-        printf("\nParent: PID = %d, GPID = %d, child 1 PID = %d.\n", getpid(), getpgrp(), child_pid1);
+        printf("\nParent: PID = %d, GPID = %d, child 2 PID = %d.\n", getpid(), getpgrp(), child_pid1);
         check_status(status);
     }
 

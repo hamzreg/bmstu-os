@@ -56,7 +56,7 @@ int main(void)
     {
         printf("\nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        if (execlp("mkdir", "mkdir", "example", NULL) == EXEC_ERROR)
+        if (execlp("./lab9.exe", "./lab9.exe", "lab9.txt", "ALL", NULL) == EXEC_ERROR)
         {
             printf("\nERROR: child 1 can not execute exec().\n");
 
@@ -84,7 +84,7 @@ int main(void)
     {
         printf("\n\n\nChild 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        if (execlp("ls", "ls", NULL) == EXEC_ERROR)
+        if (execlp("./lab10.exe", "./lab10.exe", "lab10_in.txt", "lab10_out.txt", NULL) == EXEC_ERROR)
         {
             printf("\nERROR: child 2 can not execute exec().\n");
 
@@ -96,9 +96,9 @@ int main(void)
     else
     {
         child_pid = wait(&status);
-        printf("\nChild 1 has fihished: PID = %d, status = %d\n", child_pid, status);
+        printf("\nChild 2 has fihished: PID = %d, status = %d\n", child_pid, status);
 
-        printf("\nParent: PID = %d, GPID = %d, child 1 PID = %d\n", getpid(), getpgrp(), child_pid1);
+        printf("\nParent: PID = %d, GPID = %d, child 2 PID = %d\n", getpid(), getpgrp(), child_pid1);
         check_status(status);
     }
 
