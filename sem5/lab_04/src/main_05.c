@@ -7,29 +7,29 @@
 #include <signal.h>
 
 #define FORK_ERROR -1
+#define PIPE_ERROR -1
 #define ERROR       1
 #define OK          0
 
-#define PAUSE       30
+#define PAUSE       10
 
 #define TASK        "\n<<<<< Task 5 : Signal handler with signal() >>>>>\n\n"
 
 #define READ  0
 #define WRITE 1
 
-#define MSG1  "Hello, child 2."
-#define MSG2  "How are you, child 1?"
+#define MSG1  "Hello, child 2.\n"
+#define MSG2  "How are you, child 1?\n"
 #define LEN   50
 
-#define CTRL_Z 0
-#define CTRL_C 1
-#define NO     2
-#define SIGNAL_MSG "\nPress: \
-                    \n-CTRL + Z - for msg from child 1; \
-                    \n-CTRL + C - for msg from child 2.\n"
+#define TRUE   1
+#define FALSE  0
+
+#define SIGNAL_MSG "\nPress: CTRL + Z - for msgs from childs\n"
 
 
-int flag = NO;
+int flag = FALSE;
+
 
 void check_status(int status)
 {
@@ -65,36 +65,32 @@ void catch_ctrlz(int signal)
     *  Обработка Ctrl + Z.
     */
 
-    flag = CTRL_Z;
+    flag = TRUE;
     printf("\nCatched signal = %d.\n", signal);
 }
 
-
-void catch_ctrlc(int signal)
-{
-    /*
-    *  Обработка Ctrl + C.
-    */
-
-    flag = CTRL_C;
-    printf("\nCatched signal = %d.\n", signal);
-}
 
 int main(void)
 {
     printf(TASK);
+    printf(SIGNAL_MSG);
 
     signal(SIGTSTP, catch_ctrlz);
-    signal(SIGINT, catch_ctrlc);
+    sleep(PAUSE);
 
     int fd[2];
-    pipe(fd);
 
     pid_t child_pid1, child_pid2, child_pid;
     int status;
 
-    char msg1[LEN];
-    char msg2[LEN];
+    char msgs[LEN] = {0};
+
+    if (pipe(fd) == PIPE_ERROR)
+    {
+        perror("\nCan't pipe.\n");
+        exit(ERROR);
+    }
+
 
     if ((child_pid1 = fork()) == FORK_ERROR)
     {
@@ -105,8 +101,11 @@ int main(void)
     {
         printf("\nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        close(fd[READ]);
-        write(fd[WRITE], MSG1, strlen(MSG1) + 1);
+        if (flag == TRUE)
+        {
+            close(fd[READ]);
+            write(fd[WRITE], MSG1, strlen(MSG1));
+        }
 
         exit(OK);
     }
@@ -121,44 +120,26 @@ int main(void)
     {
         printf("Child 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        close(fd[READ]);
-        write(fd[WRITE], MSG2, strlen(MSG2) + 1);
+        if (flag == TRUE)
+        {
+            close(fd[READ]);
+            write(fd[WRITE], MSG2, strlen(MSG2));
+        }
 
         exit(OK);
     }
 
+    child_pid = wait(&status);
+    printf("\n\nChild 1 has fihished: PID = %d, status = %d.\n", child_pid, status);
+    check_status(status);
 
-    if (child_pid1 && child_pid2)
-    {
-        close(fd[WRITE]);
+    child_pid = wait(&status);
+    printf("\nChild 2 has fihished: PID = %d, status = %d.\n", child_pid, status);
+    check_status(status);
 
-        read(fd[READ], msg1, LEN);
-        read(fd[READ], msg2, LEN);
-
-        printf(SIGNAL_MSG);
-        sleep(PAUSE);
-
-        if (flag == CTRL_Z)
-        {
-            printf("\nChild 1 wrote : %s\n", msg1);
-        }
-        else if (flag == CTRL_C)
-        {
-            printf("\nChild 2 wrote : %s\n", msg2);
-        }
-        else
-        {
-            printf("\nNothing is pressed.\n");
-        }
-
-        child_pid = wait(&status);
-        printf("\n\nChild 1 has fihished: PID = %d, status = %d.\n", child_pid, status);
-        check_status(status);
-
-        child_pid = wait(&status);
-        printf("\nChild 2 has fihished: PID = %d, status = %d.\n", child_pid, status);
-        check_status(status);
-    }
+    close(fd[WRITE]);
+    read(fd[READ], msgs, LEN);
+    printf("\nChilds wrote :\n%s\n", msgs);
 
     return OK;
 }

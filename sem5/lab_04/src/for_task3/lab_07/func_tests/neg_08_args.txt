@@ -1,0 +1,1 @@
+func_tests/neg_00_in.txt func_tests/neg_08_out.txt
