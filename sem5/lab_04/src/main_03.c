@@ -55,9 +55,9 @@ int main(void)
     else if (child_pid1 == 0)
     {
         printf("\nChild 1 START: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
-        printf("\n- to sort array\n");
+        printf("\nУмножение матриц\n");
 
-        if (execlp("./sort.exe", "./sort.exe", "array.txt", NULL) == EXEC_ERROR)
+        if (execlp("./multiplicate.exe", "./multiplicate.exe", NULL) == EXEC_ERROR)
         {
             printf("\nERROR: child 1 can not execute exec().\n");
 
@@ -84,9 +84,9 @@ int main(void)
     else if (child_pid2 == 0)
     {
         printf("\n\n\nChild 2 START: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
-        printf("\n- to check string is palindrome\n");
+        printf("\nВозведение в степень\n");
 
-        if (execlp("./palindrome.exe", "./palindrome.exe", "string.txt", NULL) == EXEC_ERROR)
+        if (execlp("./power.exe", "./power.exe", NULL) == EXEC_ERROR)
         {
             printf("\nERROR: child 2 can not execute exec().\n");
 

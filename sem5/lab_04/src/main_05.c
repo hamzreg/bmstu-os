@@ -85,45 +85,45 @@ int main(void)
 
     char msgs[LEN] = {0};
 
-    if (pipe(fd) == PIPE_ERROR)
+    if (pipe(fd) == -1)
     {
         perror("\nCan't pipe.\n");
-        exit(ERROR);
+        exit(1);
     }
 
 
-    if ((child_pid1 = fork()) == FORK_ERROR)
+    if ((child_pid1 = fork()) == -1)
     {
         perror("\nCan't fork child 1.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid1 == 0)
     {
         printf("\nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        if (flag == TRUE)
+        if (flag == 1)
         {
-            close(fd[READ]);
-            write(fd[WRITE], MSG1, strlen(MSG1));
+            close(fd[0]);
+            write(fd[1], MSG1, strlen(MSG1));
         }
 
-        exit(OK);
+        exit(0);
     }
 
 
-    if ((child_pid2 = fork()) == FORK_ERROR)
+    if ((child_pid2 = fork()) == -1)
     {
         perror("\nCan't fork child 2.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid2 == 0)
     {
         printf("Child 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        if (flag == TRUE)
+        if (flag == 1)
         {
-            close(fd[READ]);
-            write(fd[WRITE], MSG2, strlen(MSG2));
+            close(fd[0]);
+            write(fd[1], MSG2, strlen(MSG2));
         }
 
         exit(OK);
@@ -141,5 +141,5 @@ int main(void)
     read(fd[READ], msgs, LEN);
     printf("\nChilds wrote :\n%s\n", msgs);
 
-    return OK;
+    return 0;
 }

@@ -1,0 +1,575 @@
+\section*{Вторая программа}
+
+Во второй программе выполняется: чтение последовательности из файла и вывод на экран информации о том, является ли последовательность палиндромом. Для работы с последовательностью используется список.
+
+Данная программа выполнялась на лабораторной работе в курсе "Программирование на языке C".
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:list,caption=list.c]
+#include "../inc/list.h"
+
+node_t *reverse(node_t *head)
+{
+    if (!head)
+        return NULL;
+
+    node_t *result = NULL;
+    node_t *node;
+
+    while (head != NULL)
+    {
+        void *element = pop_front(&head);
+        node = create_node(element);
+        add_node(&result, node);
+    }
+
+    return result;
+}
+
+
+void sorted_insert(node_t **head, node_t *element,
+int (*comparator)(const void *, const void *))
+{
+    element->next = NULL;
+
+    if (!(*head))
+    {
+        element->next = *head;
+        *head = element;
+
+        return;
+    }
+
+    char *first, *second = element->data;
+
+    if ((*head)->next == NULL)
+    {
+        first = (*head)->data;
+
+        if (comparator(first, second) <= 0)
+        {
+            (*head)->next = element;
+            element->next = NULL;
+
+            return;
+        }
+
+        element->next = *head;
+        *head = element;
+
+        return;
+    }
+
+    node_t *node = *head, *add;
+    first = node->data;
+
+    if (comparator(first, second) > 0)
+    {
+        add = *head;
+        *head = element;
+        element->next = add;
+
+        return;
+    }
+
+    while (node->next)
+    {
+        first = node->next->data;
+
+        if (comparator(first, second) > 0)
+        {
+            add = node->next;
+            node->next = element;
+            element->next = add;
+
+            return;
+        }
+
+        node = node->next;
+    }
+
+    node->next = element;
+}
+
+
+node_t *sort(node_t *head, int (*comparator)(const void *, const void *))
+{
+    if (!head)
+        return NULL;
+
+    if (!comparator)
+        return NULL;
+
+    node_t *result = NULL;
+
+    while (head != NULL)
+    {
+        node_t *node = head;
+        head = head->next;
+        sorted_insert(&result, node, comparator);
+    }
+
+    return result;
+}
+
+
+int compare_int(const void *first, const void *second)
+{
+    return *(int *)first - *(int *)second;
+}
+\end{lstlisting}
+\end{center}
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:node,caption=node.c]
+#include "../inc/node.h"
+
+node_t *create_node(void *data)
+{
+    node_t *node = malloc(sizeof(node_t));
+
+    if (node)
+    {
+        node->data = data;
+        node->next = NULL;
+    }
+
+    return node;
+}
+
+
+void add_node(node_t **head, node_t *node)
+{
+    node->next = *head;
+    *head = node;
+}
+
+
+void *pop_front(node_t **head)
+{
+    if (!head || !(*head))
+        return NULL;
+
+    node_t *node = (*head);
+    void *data = node->data;
+    (*head) = (*head)->next;
+
+    free(node);
+
+    return data;
+}
+
+
+void *pop_back(node_t **head)
+{
+    if (!head || !(*head))
+        return NULL;
+
+    node_t *node = *head, *prev_node = NULL;
+
+    for (; node->next; node = node->next)
+        prev_node = node;
+
+    void *data = node->data;
+
+    if (prev_node)
+        prev_node->next = node->next;
+    else
+        *head = node->next;
+
+    free(node);
+
+    return data;
+}
+\end{lstlisting}
+\end{center}
+
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:sequence,caption=sequence.c]
+#include "../inc/sequence.h"
+
+void init_sequence(sequence_t *sequence)
+{
+    sequence->count = 0;
+    sequence->head = NULL;
+}
+
+
+int get_count_elements(FILE *in_file, int *count)
+{
+    int element;
+
+    while (fscanf(in_file, "%d", &element) == 1)
+        (*count)++;
+
+    if (!*count)
+        return EMPTY_FILE;
+
+    return OK;
+}
+
+
+int read_sequence(const char *filename, sequence_t *sequence,
+int **storage)
+{
+    FILE *in_file = fopen(filename, "r");
+
+    if (!in_file)
+    {
+        LOG_ERROR("%s", "File open error");
+        return ERROR_FILE_OPEN;
+    }
+
+    init_sequence(sequence);
+
+    if (get_count_elements(in_file, &sequence->count))
+        return EMPTY_FILE;
+
+    rewind(in_file);
+
+    *storage = malloc(sequence->count * sizeof(int));
+
+    if (!*storage)
+        return ALLOCATE_ERROR;
+
+    int element;
+    int i = 0;
+
+    while (fscanf(in_file, "%d", &element) == 1)
+    {
+        (*storage)[i] = element;
+        i++;
+    }
+
+    create_sequence(sequence, *storage);
+
+    if (fclose(in_file) != OK)
+    {
+        free_sequence(sequence->head);
+        free(*storage);
+
+        LOG_ERROR("%s", "File close error");
+        return ERROR_FILE_CLOSE;
+    }
+
+    return OK;
+}
+
+
+void create_sequence(sequence_t *sequence, int *storage)
+{
+    for (int i = 0; i < sequence->count; i++)
+    {
+        node_t *node = create_node(&storage[i]);
+        add_node(&(sequence->head), node);
+    }
+}
+
+
+void free_sequence(node_t *head)
+{
+    node_t *node;
+
+    for (; head; head = node)
+    {
+        node = head->next;
+        free(head);
+    }
+}
+
+
+int is_palindrome(sequence_t *sequence)
+{
+    int repeats = sequence->count / 2;
+    char *start, *end;
+
+    while (repeats > 0)
+    {
+        start = pop_front(&sequence->head);
+        end = pop_back(&sequence->head);
+
+        if (compare_int(start, end) != EQUAL)
+            return NOT_PALINDROME;
+
+        repeats--;
+    }
+
+    return PALINDROME;
+}
+
+
+node_t* process_sequence(const char *filename, sequence_t *sequence,
+int *storage, int (*comparator)(const void *, const void *))
+{
+    int code = is_palindrome(sequence);
+
+    sequence_t add_sequence;
+    init_sequence(&add_sequence);
+    add_sequence.count = sequence->count;
+
+    free_sequence(sequence->head);
+
+    create_sequence(&add_sequence, storage);
+    node_t *result;
+
+    if (code == PALINDROME)
+        result = sort(add_sequence.head, comparator);
+    else
+        result = reverse(add_sequence.head);
+
+    return result;
+}
+
+
+int write_sequence(const char *filename, sequence_t *sequence)
+{
+    FILE *out_file = fopen(filename, "w");
+
+    if (!out_file)
+    {
+        LOG_INFO("%s", "File open error");
+        return ERROR_FILE_OPEN;
+    }
+
+    int size = sequence->count;
+
+    while (size > 0)
+    {
+        int *number = (int *)pop_front(&sequence->head);
+        size--;
+        fprintf(out_file, "%d\n", *number);
+    }
+
+    if (fclose(out_file) != OK)
+    {
+        free_sequence(sequence->head);
+        return ERROR_FILE_CLOSE;
+    }
+
+    return OK;
+}
+
+void print_sequence(sequence_t *sequence)
+{
+    int size = sequence->count;
+
+    while (size > 0)
+    {
+        int *number = (int *)pop_front(&sequence->head);
+        size--;
+        printf("%d ", *number);
+    }
+}
+\end{lstlisting}
+\end{center}
+
+\clearpage
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:main,caption=main.c]
+#include <stdio.h>
+#include <stdlib.h>
+#include "../inc/node.h"
+#include "../inc/sequence.h"
+#include "../inc/list.h"
+
+int main(int argc, char **argv)
+{
+    if (argc != COUNT_ARGC)
+        return ERROR_ARGC;
+
+    sequence_t sequence, add_sequence;
+    int *storage = NULL;
+
+    int code = read_sequence(argv[1], &sequence, &storage);
+
+    if (code)
+        return code;
+
+    init_sequence(&add_sequence);
+    add_sequence.count = sequence.count;
+    create_sequence(&add_sequence, storage);
+
+    print_sequence(&sequence);
+
+    if (is_palindrome(&add_sequence))
+        printf("is palindrome\n");
+    else
+        printf("is not palindrome\n");
+
+    free(storage);
+
+    return OK;
+}
+\end{lstlisting}
+\end{center}
+
+\clearpage
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:list,caption=list.h]
+#ifndef LIST_H
+#define LIST_H
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "node.h"
+
+node_t *reverse(node_t *head);
+
+void sorted_insert(node_t **head, node_t *element,
+int (*comparator)(const void *, const void *));
+
+node_t *sort(node_t *head, int (*comparator)(const void *, const void *));
+
+int compare_int(const void *first, const void *second);
+
+#endif
+\end{lstlisting}
+\end{center}
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:nodet,caption=node\_t.h]
+#ifndef NODE_T_H
+#define NODE_T_H
+
+typedef struct node node_t;
+
+struct node
+{
+    void *data;
+    node_t *next;
+};
+
+#endif
+\end{lstlisting}
+\end{center}
+
+\clearpage
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:node,caption=node.h]
+#ifndef NODE_H
+#define NODE_H
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "node_t.h"
+#include "macrologger.h"
+
+node_t *create_node(void *data);
+
+void add_node(node_t **head, node_t *node);
+
+void *pop_front(node_t **head);
+
+void *pop_back(node_t **head);
+
+#endif
+\end{lstlisting}
+\end{center}
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:sequencet,caption=sequence\_t.h]
+#ifndef SEQUENCE_T_H
+#define SEQUENCE_T_H
+
+#include "../inc/node_t.h"
+
+typedef struct sequence_t
+{
+    int count;
+    node_t *head;
+} sequence_t;
+
+#endif
+\end{lstlisting}
+\end{center}
+
+\clearpage
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:sequence,caption=sequence.h]
+#ifndef SEQUENCE_H
+#define SEQUENCE_H
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "list.h"
+#include "return_codes.h"
+#include "constants.h"
+#include "macrologger.h"
+#include "sequence_t.h"
+#include "node_t.h"
+#include "node.h"
+
+void init_sequence(sequence_t *sequence);
+
+int read_sequence(const char *filename, sequence_t *sequence,
+int **storage);
+
+void create_sequence(sequence_t *sequence, int *storage);
+
+void free_sequence(node_t *head);
+
+int is_palindrome(sequence_t *sequence);
+
+node_t *process_sequence(const char *filename, sequence_t *sequence,
+int *storage, int (*comparator)(const void *, const void *));
+
+int write_sequence(const char *filename, sequence_t *sequence);
+
+void print_sequence(sequence_t *sequence);
+
+#endif
+\end{lstlisting}
+\end{center}
+
+\clearpage
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:constants,caption=constants.h]
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+#define COUNT_ARGC     2
+
+#define PALINDROME     1
+#define NOT_PALINDROME 0
+#define EQUAL          0
+
+#endif
+\end{lstlisting}
+\end{center}
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}[label=lst:returncodes, caption=return\_codes.h]
+#ifndef RETURN_CODES_H
+#define RETURN_CODES_H
+
+#define OK               0
+#define ERROR_ARGC       1
+#define ERROR_FILE_OPEN  2
+#define ERROR_DATA_TYPE  3
+#define ERROR_FILE_CLOSE 4
+#define ALLOCATE_ERROR   5
+#define EMPTY_FILE       6
+
+#endif
+\end{lstlisting}
+\end{center}

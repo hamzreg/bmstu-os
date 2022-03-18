@@ -13,10 +13,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define FORK_ERROR -1
-#define ERROR       1
-#define OK          0
-
 #define PAUSE       4
 
 #define TASK        "\n<<<<< Task 1 : Creating orphan processes >>>>>\n\n"
@@ -26,10 +22,10 @@ int main(void)
 {
     pid_t child_pid1, child_pid2;
 
-    if ((child_pid1 = fork()) == FORK_ERROR)
+    if ((child_pid1 = fork()) == -1)
     {
         perror("\nCan't fork child 1.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid1 == 0)
     {
@@ -41,7 +37,7 @@ int main(void)
         printf("\nAFTER: \
                 \nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        exit(OK);
+        exit(0);
     }
     else
     {
@@ -49,10 +45,10 @@ int main(void)
     }
 
 
-    if ((child_pid2 = fork()) == FORK_ERROR)
+    if ((child_pid2 = fork()) == -1)
     {
         perror("\nCan't fork child 2.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid2 == 0)
     {
@@ -64,14 +60,14 @@ int main(void)
         printf("\nAFTER: \
                 \nChild 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        exit(OK);
+        exit(0);
     }
     else
     {
         printf("\nParent: PID = %d, GPID = %d, child 2 PID = %d.\n", getpid(), getpgrp(), child_pid2);
     }
 
-    return OK;
+    return 0;
 }
 \end{lstlisting}
 \end{center}
@@ -108,14 +104,9 @@ int main(void)
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define FORK_ERROR -1
-#define ERROR       1
-#define OK          0
-
 #define PAUSE       4
 
 #define TASK        "\n<<<<< Task 2 : Parent is waiting childs with wait() >>>>>\n\n"
-
 
 void check_status(int status)
 {
@@ -139,7 +130,6 @@ void check_status(int status)
     }
 }
 
-
 int main(void)
 {
     printf(TASK);
@@ -147,10 +137,10 @@ int main(void)
     pid_t child_pid1, child_pid2, child_pid;
     int status;
 
-    if ((child_pid1 = fork()) == FORK_ERROR)
+    if ((child_pid1 = fork()) == -1)
     {
         perror("\nCan't fork child 1.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid1 == 0)
     {
@@ -162,7 +152,7 @@ int main(void)
         printf("\nAFTER: \
                 \nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        exit(OK);
+        exit(0);
     }
     else
     {
@@ -174,10 +164,10 @@ int main(void)
     }
 
 
-    if ((child_pid2 = fork()) == FORK_ERROR)
+    if ((child_pid2 = fork()) == -1)
     {
         perror("\nCan't fork child 2.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid2 == 0)
     {
@@ -189,7 +179,7 @@ int main(void)
         printf("\nAFTER: \
                 \nChild 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        exit(OK);
+        exit(0);
     }
     else
     {
@@ -200,7 +190,7 @@ int main(void)
         check_status(status);
     }
 
-    return OK;
+    return 0;
 }
 \end{lstlisting}
 \end{center}
@@ -219,8 +209,8 @@ int main(void)
 Процессы-потомки переходят на выполнение следующих программ:
 
 \begin{itemize}
-	\item в первой программе (./sort.exe) выполняется чтение массива целых чисел из файла (array.txt), сортировка массива и его вывод на экран (лабораторная работа по курсу программирования на языке C);
-	\item во второй программе (./palindrome.exe) выполняется чтение последовательности символов из файла (./string) и вывод сообщения о том, является ли введенная последовательность палиндромом (лабораторная работа по курсу программирования на языке C).
+	\item в первой программе (./multiplicate.exe) выполнятся ввод матриц, их умножение и вывод результата на экран (лабораторная работа по курсу программирования на языке C);
+	\item во второй программе (./power.exe) выполняется ввод матриц, возведение их в степень и вывод результата на экран (лабораторная работа по курсу программирования на языке C).
 \end{itemize}
 
 Программы передаются системному вызову execlp() в качестве параметра.
@@ -233,11 +223,6 @@ int main(void)
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-#define FORK_ERROR -1
-#define EXEC_ERROR -1
-#define ERROR       1
-#define OK          0
 
 #define TASK        "\n<<<<< Task 3 : Children do other programs with execlp() >>>>>\n\n"
 
@@ -272,24 +257,24 @@ int main(void)
     pid_t child_pid1, child_pid2, child_pid;
     int status;
 
-    if ((child_pid1 = fork()) == FORK_ERROR)
+    if ((child_pid1 = fork()) == -1)
     {
         perror("\nCan't fork child 1.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid1 == 0)
     {
         printf("\nChild 1 START: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
         printf("\n- to sort array\n");
 
-        if (execlp("./sort.exe", "./sort.exe", "array.txt", NULL) == EXEC_ERROR)
+        if (execlp("./sort.exe", "./sort.exe", "array.txt", NULL) == -1)
         {
             printf("\nERROR: child 1 can not execute exec().\n");
 
-            exit(ERROR);
+            exit(1);
         }
 
-        exit(OK);
+        exit(0);
     }
     else
     {
@@ -301,24 +286,24 @@ int main(void)
     }
 
 
-    if ((child_pid2 = fork()) == FORK_ERROR)
+    if ((child_pid2 = fork()) == -1)
     {
         perror("\nCan't fork child 2.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid2 == 0)
     {
         printf("\n\n\nChild 2 START: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
         printf("\n- to check string is palindrome\n");
 
-        if (execlp("./palindrome.exe", "./palindrome.exe", "string.txt", NULL) == EXEC_ERROR)
+        if (execlp("./palindrome.exe", "./palindrome.exe", "string.txt", NULL) == -1)
         {
             printf("\nERROR: child 2 can not execute exec().\n");
 
-            exit(ERROR);
+            exit(1);
         }
 
-        exit(OK);
+        exit(0);
     }
     else
     {
@@ -329,7 +314,7 @@ int main(void)
         check_status(status);
     }
 
-    return OK;
+    return 0;
 }
 \end{lstlisting}
 \end{center}
@@ -357,16 +342,7 @@ int main(void)
 #include <unistd.h>
 #include <string.h>
 
-#define FORK_ERROR -1
-#define PIPE_ERROR -1
-#define ERROR       1
-#define OK          0
-
-
 #define TASK        "\n<<<<< Task 4 : Messaging with pipe() >>>>>\n\n"
-
-#define READ  0
-#define WRITE 1
 
 #define MSG1  "Hello, child 2.\n"
 #define MSG2  "How are you, child 1?\n"
@@ -406,41 +382,41 @@ int main(void)
 
     char msgs[LEN] = {0};
 
-    if (pipe(fd) == PIPE_ERROR)
+    if (pipe(fd) == -1)
     {
         perror("\nCan't pipe.\n");
-        exit(ERROR);
+        exit(1);
     }
 
-    if ((child_pid1 = fork()) == FORK_ERROR)
+    if ((child_pid1 = fork()) == -1)
     {
         perror("\nCan't fork child 1.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid1 == 0)
     {
         printf("\nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        close(fd[READ]);
-        write(fd[WRITE], MSG1, strlen(MSG1));
+        close(fd[0]);
+        write(fd[1], MSG1, strlen(MSG1));
 
-        exit(OK);
+        exit(0);
     }
 
 
-    if ((child_pid2 = fork()) == FORK_ERROR)
+    if ((child_pid2 = fork()) == -1)
     {
         perror("\nCan't fork child 2.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid2 == 0)
     {
         printf("Child 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        close(fd[READ]);
-        write(fd[WRITE], MSG2, strlen(MSG2));
+        close(fd[0]);
+        write(fd[1], MSG2, strlen(MSG2));
 
-        exit(OK);
+        exit(0);
     }
 
     child_pid = wait(&status);
@@ -451,11 +427,11 @@ int main(void)
     printf("\nChild 2 has fihished: PID = %d, status = %d.\n", child_pid, status);
     check_status(status);
 
-    close(fd[WRITE]);
-    read(fd[READ], msgs, LEN);
+    close(fd[1]);
+    read(fd[0], msgs, LEN);
     printf("\nChilds wrote :\n%s\n", msgs);
 
-    return OK;
+    return 0;
 }
 \end{lstlisting}
 \end{center}
@@ -484,29 +460,18 @@ int main(void)
 #include <string.h>
 #include <signal.h>
 
-#define FORK_ERROR -1
-#define PIPE_ERROR -1
-#define ERROR       1
-#define OK          0
-
 #define PAUSE       5
 
 #define TASK        "\n<<<<< Task 5 : Signal handler with signal() >>>>>\n\n"
-
-#define READ  0
-#define WRITE 1
 
 #define MSG1  "Hello, child 2.\n"
 #define MSG2  "How are you, child 1?\n"
 #define LEN   50
 
-#define TRUE   1
-#define FALSE  0
-
 #define SIGNAL_MSG "\nPress: CTRL + Z - for msgs from childs\n"
 
 
-int flag = FALSE;
+int flag = 0;
 
 
 void check_status(int status)
@@ -534,7 +499,7 @@ void check_status(int status)
 
 void catch_ctrlz(int signal)
 {
-    flag = TRUE;
+    flag = 1;
     printf("\nCatched signal = %d.\n", signal);
 }
 
@@ -554,48 +519,48 @@ int main(void)
 
     char msgs[LEN] = {0};
 
-    if (pipe(fd) == PIPE_ERROR)
+    if (pipe(fd) == -1)
     {
         perror("\nCan't pipe.\n");
-        exit(ERROR);
+        exit(1);
     }
 
 
-    if ((child_pid1 = fork()) == FORK_ERROR)
+    if ((child_pid1 = fork()) == -1)
     {
         perror("\nCan't fork child 1.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid1 == 0)
     {
         printf("\nChild 1: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        if (flag == TRUE)
+        if (flag == 1)
         {
-            close(fd[READ]);
-            write(fd[WRITE], MSG1, strlen(MSG1));
+            close(fd[0]);
+            write(fd[1], MSG1, strlen(MSG1));
         }
 
-        exit(OK);
+        exit(0);
     }
 
 
-    if ((child_pid2 = fork()) == FORK_ERROR)
+    if ((child_pid2 = fork()) == -1)
     {
         perror("\nCan't fork child 2.\n");
-        exit(ERROR);
+        exit(1);
     }
     else if (child_pid2 == 0)
     {
         printf("Child 2: PID = %d, PPID = %d, GPID = %d.\n", getpid(), getppid(), getpgrp());
 
-        if (flag == TRUE)
+        if (flag == 1)
         {
-            close(fd[READ]);
-            write(fd[WRITE], MSG2, strlen(MSG2));
+            close(fd[0]);
+            write(fd[1], MSG2, strlen(MSG2));
         }
 
-        exit(OK);
+        exit(0);
     }
 
     child_pid = wait(&status);
@@ -606,11 +571,11 @@ int main(void)
     printf("\nChild 2 has fihished: PID = %d, status = %d.\n", child_pid, status);
     check_status(status);
 
-    close(fd[WRITE]);
-    read(fd[READ], msgs, LEN);
+    close(fd[1]);
+    read(fd[0], msgs, LEN);
     printf("\nChilds wrote :\n%s\n", msgs);
 
-    return OK;
+    return 0;
 }
 \end{lstlisting}
 \end{center}
