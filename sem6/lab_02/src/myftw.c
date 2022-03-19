@@ -65,8 +65,48 @@ int process_item(char *now_path, char *now_file, stack_t* tree, const int level)
 
     if (lstat(fullpath, &statbuf) < 0)
     {
-        free(fullpath);
+        switch (errno)
+        {
+            case EACCES:
+                printf("Ошибка! Запрещен поиск в каталоге %s.\n",
+                        fullpath);
+                break;
+            case EBADF:
+                printf("Ошибка! Неверный открытый файловый дескриптор %s.\n",
+                        fullpath);
+                break;
+            case EFAULT:
+                printf("Ошибка! Неверный адрес: %s!.\n", fullpath);
+                break;
+            case ELOOP:
+                printf("Ошибка! Много символьных ссылок при определении пути: %s.\n",
+                        fullpath);
+                break;
+            case ENAMETOOLONG:
+                printf("Ошибка! Слишком длинное значение аргумента: %s.\n", fullpath);
+                break;
+            case ENOENT:
+                printf("Ошибка! Не существует компонент пути или пустая строка: %s.\n",
+                        fullpath);
+                break;
+            case ENOMEM:
+                printf("Ошибка! Не хватает памяти: %s\n.", fullpath);
+                break;
+            case ENOTDIR:
+                printf("Ошибка! Компонент в префиксе не является каталогом: %s.\n",
+                        fullpath);
+                break;
+            case EOVERFLOW:
+                printf("Ошибка! Размер файла, номер inode или количество блоков не\
+                        могут быть представлены в виде стандартных типов\
+                        %s.\n", fullpath);
+                break;
+            default:
+                printf("Ошибка! Ошибка при получении информации о файле %s.\n",
+                        fullpath);
+        }
 
+        free(fullpath);
         return -1;
     }
     else if (S_ISDIR(statbuf.st_mode) != 0)
