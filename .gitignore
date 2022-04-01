@@ -8,6 +8,7 @@
 
 # Object files
 *.o
+*.out
 
 # Executable files
 *.exe
