@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <fcntl.h>
 
 #include "constants.h"
 #include "stat_content.h"
@@ -225,6 +228,80 @@ void print_task_info(const char *pid, FILE *result)
     closedir(dp);
 }
 
+void print_page(uint64_t address, uint64_t data, FILE *out)
+{
+    fprintf(out, "0x%-16lx : %-16lx %-10ld %-10ld %-10ld %-10ld\n",
+        address,
+        data & (((uint64_t)1 << 55) - 1),
+        (data >> 55) & 1,
+        (data >> 61) & 1,
+        (data >> 62) & 1,
+        (data >> 63) & 1);
+}
+
+void print_pagemap_info(const char *pid, FILE *result)
+{
+    fprintf(result, "PAGEMAP\n");
+    fprintf(result, "       addr        : pfn           soft-dirty file/shared swapped present\n");
+
+    char path[PATH_MAX];
+    snprintf(path, PATH_MAX, "/proc/%s/maps", pid);
+    FILE *maps_file = fopen(path, "r");
+
+    snprintf(path, PATH_MAX, "/proc/%s/pagemap", pid);
+    int pm_fd = open(path, O_RDONLY);
+
+    char buf[BUF_SIZE] = "\0";
+    int len;
+
+    while ((len = fread(buf, 1, BUF_SIZE, maps_file)) > 0)
+    {
+        for (int i = 0; i < len; i++)
+        {
+            if (buf[i] == 0)
+            {
+                buf[i] = '\n';
+            }
+        }
+
+        buf[len] = '\0';
+
+        char *save_row;
+        char *row = strtok_r(buf, "\n", &save_row);
+
+        while (row)
+        {
+            char *addresses = strtok(row, " ");
+
+            char *start_str, *end_str;
+
+            if ((start_str = strtok(addresses, "-")) &&
+                (end_str = strtok(NULL, "-")))
+            {
+
+                uint64_t start = strtoul(start_str, NULL, 16);
+                uint64_t end = strtoul(end_str, NULL, 16);
+
+                for(uint64_t i = start; i < end; i += sysconf(_SC_PAGE_SIZE))
+                {
+                    uint64_t offset;
+                    uint64_t index = ((i / sysconf(_SC_PAGE_SIZE))
+                                         * sizeof(offset));
+
+                    pread(pm_fd, &offset, sizeof(offset), index);
+                    print_page(i, offset, result);
+                }
+            }
+
+            row = strtok_r(NULL, "\n", &save_row);
+        }
+
+    }
+
+    fclose(maps_file);
+    close(pm_fd);
+}
+
 void get_pid(int argc, char *argv[], char *pid)
 {
     if (argc < 2)
@@ -255,6 +332,7 @@ int main (int argc, char *argv[])
     print_maps_info(pid, result);
     print_comm_info(pid, result);
     print_task_info(pid, result);
+    print_pagemap_info(pid, result);
 
     fclose(result);
 

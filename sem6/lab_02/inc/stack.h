@@ -8,7 +8,7 @@
 
 #include "item.h"
 
-typedef struct  stack
+typedef struct stack
 {
     int count;
     item_t *head;

@@ -140,7 +140,7 @@ void my_ftw(char *pathname)
         item = pop_stack(&tree);
 
         char *file;
-
+        printf("%s\n", item->name);
         if ((file = strrchr(item->name, '/')))
         {
             print_tree(file + 1, item->level);
@@ -165,7 +165,7 @@ void my_ftw(char *pathname)
 
         if (closedir(dp) < 0)
         {
-            printf("Ошибка! Не удалось закрыть директорию.\n");
+            printf("Ошибка! Не существует компонент пути или пустая строка.\n");
         }
     }
 

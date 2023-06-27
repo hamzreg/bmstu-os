@@ -1,0 +1,115 @@
+\chapter{Необходимые структуры}
+
+Версия ядра: 5.13.0
+
+\begin{center}
+    \captionsetup{justification=raggedright,singlelinecheck=off}
+    \begin{lstlisting}
+struct filename {
+	const char		*name;	/* pointer to actual string */
+	const __user char	*uptr;	/* original userland pointer */
+	int			refcnt;
+	struct audit_names	*aname;
+	const char		iname[];
+};
+
+struct open_flags {
+	int open_flag;
+	umode_t mode;
+	int acc_mode;
+	int intent;
+	int lookup_flags;
+};
+
+struct audit_names {
+	struct list_head	list;		/* audit_context->names_list */
+
+	struct filename		*name;
+	int			name_len;	/* number of chars to log */
+	bool			hidden;		/* don't log this record */
+
+	unsigned long		ino;
+	dev_t			dev;
+	umode_t			mode;
+	kuid_t			uid;
+	kgid_t			gid;
+	dev_t			rdev;
+	u32			osid;
+	struct audit_cap_data	fcap;
+	unsigned int		fcap_ver;
+	unsigned char		type;		/* record type */
+	/*
+	 * This was an allocated audit_names and not from the array of
+	 * names allocated in the task audit context.  Thus this name
+	 * should be freed on syscall exit.
+	 */
+	bool			should_free;
+};
+
+#define EMBEDDED_LEVELS 2
+struct nameidata {
+	struct path	path;
+	struct qstr	last;
+	struct path	root;
+	struct inode	*inode; /* path.dentry.d_inode */
+	unsigned int	flags;
+	unsigned	seq, m_seq, r_seq;
+	int		last_type;
+	unsigned	depth;
+	int		total_link_count;
+	struct saved {
+		struct path link;
+		struct delayed_call done;
+		const char *name;
+		unsigned seq;
+	} *stack, internal[EMBEDDED_LEVELS];
+	struct filename	*name;
+	struct nameidata *saved;
+	unsigned	root_seq;
+	int		dfd;
+	kuid_t		dir_uid;
+	umode_t		dir_mode;
+} __randomize_layout;
+
+struct open_how {
+	__u64 flags;
+	__u64 mode;
+	__u64 resolve;
+};
+
+struct path {
+	struct vfsmount *mnt;
+	struct dentry *dentry;
+} __randomize_layout;
+\end{lstlisting}
+\end{center}
+
+\chapter{Флаги системного вызова open()}
+
+\texttt{O\_CREAT} --- если файл не существует, то он будет создан;
+
+\texttt{O\_EXCL} --- если используется совместно с \texttt{O\_CREAT}, то при наличии уже созданного файла вызов завершится ошибкой;
+
+\texttt{O\_NOCTTY} --- если файл указывает на терминальное устройство, то оно не станет терминалом управления процесса, даже при его отсутствии;
+
+\texttt{O\_TRUNC} --- если файл уже существует, он является обычным файлом и заданный режим позволяет записывать в этот файл, то его длина будет урезана до нуля;
+
+\texttt{O\_APPEND} --- файл открывается в режиме добавления, перед каждой операцией записи файловый указатель будет устанавливаться в конец файла;
+
+\texttt{O\_NONBLOCK}, \texttt{O\_NDELAY} --- файл открывается, по возможности, в режиме \texttt{non-blocking}, то есть никакие последующие операции над дескриптором файла не заставляют в дальнейшем вызывающий процесс ждать;
+
+\texttt{O\_SYNC} --- файл открывается в режиме синхронного ввода-вывода, то есть все операции записи для соответствующего дескриптора файла блокируют вызывающий процесс до тех пор, пока данные не будут физически записаны;
+
+\texttt{O\_NOFOLLOW} --- если файл является символической ссылкой, то \texttt{open} вернёт ошибку;
+
+\texttt{O\_DIRECTORY} --- если файл не является каталогом, то \texttt{open} вернёт ошибку;
+
+\texttt{O\_LARGEFILE} --- позволяет открывать файлы, размер которых не может быть представлен типом \texttt{off\_t (long)};
+
+\texttt{O\_DSYNC} --- операции записи в файл будут завершены в соответствии с требованиями целостности данных синхронизированного завершения ввода-вывода;
+
+\texttt{O\_NOATIME} --- запрет на обновление времени последнего доступа к файлу при его чтении;
+
+\texttt{O\_TMPFILE} --- при наличии данного флага создаётся неименованный временный обычный файл;
+
+\texttt{O\_CLOEXEC} --- включает флаг \texttt{close-on-exec} для нового файлового дескриптора, указание этого флага позволяет программе избегать дополнительных операций \texttt{fcntl F\_SETFD} для установки флага \texttt{FD\_CLOEXEC}.

@@ -13,7 +13,7 @@ static int __init md_init(void)
     printk(KERN_INFO "- md2 data exported from md1: %s\n", data);
     printk(KERN_INFO "- md2 returned md1_proc: %s\n", md1_proc());
 
-    // printk( "- md2 use local from md1: %s\n", data());
+    // printk( "- md2 use local from md1: %s\n", md1_local());
     // printk( "- md2 use noexport from md1: %s\n", md1_noexport());
 
     return 0;

@@ -16,18 +16,18 @@ static int __init md_init(void)
 
     do
     {
-        printk(KERN_INFO "name - %s; pid - %d; state - %ld; static_prio - %d; p_name - %s; p_pid - %d",
+        printk(KERN_INFO "name - %s; pid - %d; state - %ld; static_prio - %d; p_name - %s; p_pid - %d\n",
                task->comm, task->pid, task->state, task->static_prio, task->parent->comm, task->parent->pid);
     } while ((task = next_task(task)) != &init_task);
 
-    printk(KERN_INFO "current: name - %s; pid - %d; state - %ld; static_prio - %d; p_name - %s; p_pid - %d",
-           current->comm, current->pid, current->state, current->static_prio, current->parent->comm, current->parent->pid);
     return 0;
 }
 
 static void __exit md_exit(void)
 {
     printk("Good by!\n");
+    printk(KERN_INFO "current name - %s; pid - %d; state - %ld; static_prio - %d; p_name - %s; p_pid - %d\n",
+           current->comm, current->pid, current->state, current->static_prio, current->parent->comm, current->parent->pid);
 }
 
 module_init(md_init);

@@ -1,0 +1,58 @@
+\documentclass[a4paper,14pt, unknownkeysallowed]{extreport}
+
+\include{settings}
+
+\begin{document}
+
+\include{title}
+\include{base}
+
+\includepdf[
+pages=-,
+pagecommand=\subsubsection*{Схема алгоритма работы системного вызова open()}
+]{open.pdf}
+
+\includepdf[
+pages=-,
+pagecommand=\subsubsection*{Схема алгоритма работы функции build\_open\_how()}
+]{build_open_how.pdf}
+
+\includepdf[
+pages=-,
+scale = 0.85,
+pagecommand=\subsubsection*{Схема алгоритма работы функции build\_open\_flags()}
+]{build_open_flags.pdf}
+
+\includepdf[
+pages=-,
+pagecommand=\subsubsection*{Схема алгоритма работы функции getname\_flags()}
+]{getname_flags.pdf}
+
+\includepdf[
+pages=-,
+pagecommand=\subsubsection*{Схема алгоритма работы функции alloc\_fd()}
+]{alloc_fd.pdf}
+
+\includepdf[
+pages=-,
+pagecommand=\subsubsection*{Схема алгоритма работы функции do\_filp\_open()}
+]{do_filp_open.pdf}
+
+\includepdf[
+pages=-,
+scale = 0.85,
+pagecommand=\subsubsection*{Схема алгоритма работы функции path\_openat()}
+]{path_openat.pdf}
+
+\includepdf[
+pages=-,
+scale = 0.85,
+pagecommand=\subsubsection*{Схема алгоритма работы функции open\_last\_lookups()}
+]{open_last_lookups.pdf}
+
+\includepdf[
+pages=-,
+pagecommand=\subsubsection*{Схема алгоритма работы функции lookup\_open()}
+]{lookup_open.pdf}
+
+\end{document}

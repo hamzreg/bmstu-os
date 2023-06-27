@@ -1,7 +1,8 @@
 CURRENT = $(shell uname -r)
 KDIR = /lib/modules/$(CURRENT)/build
 PWD = $(shell pwd)
-TARGET = md
+# TARGET = fortunes
+TARGET = seqfile
 obj-m := $(TARGET).o
 
 default:
@@ -17,13 +18,16 @@ disclean: clean
 	@rm -f *.ko *.symvers *.mod
 
 load:
-	sudo insmod md.ko
+	sudo insmod $(TARGET).ko
 
 unload:
-	sudo rmmod md.ko
+	sudo rmmod $(TARGET).ko
 
 info:
-	lsmod | grep md
+	lsmod | grep $(TARGET)
 
 logs:
-	dmesg | tail -5
+	dmesg | grep +
+
+show:
+	ls -ail /proc | grep $(TARGET)

@@ -1,7 +1,7 @@
 CURRENT = $(shell uname -r)
 KDIR = /lib/modules/$(CURRENT)/build
 PWD = $(shell pwd)
-TARGET = md
+TARGET = my_vfs
 obj-m := $(TARGET).o
 
 default:
@@ -16,14 +16,28 @@ clean:
 disclean: clean
 	@rm -f *.ko *.symvers *.mod
 
+create_files:
+	touch image
+	mkdir dir
+
+clean_files:
+	rm image
+	rm -rf dir
+
 load:
-	sudo insmod md.ko
+	sudo insmod $(TARGET).ko
 
 unload:
-	sudo rmmod md.ko
+	sudo rmmod $(TARGET).ko
 
 info:
-	lsmod | grep md
+	lsmod | grep $(TARGET)
 
 logs:
-	dmesg | tail -5
+	dmesg | grep $(TARGET)
+
+mount_vfs:
+	sudo mount -o loop -t $(TARGET) ./file ./dir
+
+unmount:
+	sudo umount ./dir
